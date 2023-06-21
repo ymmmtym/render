@@ -1,0 +1,66 @@
+services:
+  # A Docker web service
+  - type: web
+    name: webdis
+    runtime: docker
+    repo: https://github.com/render-examples/webdis.git # optional
+    region: oregon # optional (defaults to oregon)
+    plan: standard # optional (defaults to starter instance type)
+    branch: master # optional (defaults to master)
+    rootDir: webdis
+    dockerCommand: ./webdis.sh # optional (defaults to Dockerfile command)
+    numInstances: 3 # optional (defaults to 1)
+    healthCheckPath: /
+    envVars:
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: lightning
+          property: host # available properties are listed below
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: lightning
+          property: port
+      - fromGroup: conc-settings
+  # A static site
+  - type: web
+    name: my blog
+    runtime: static
+    buildCommand: yarn build
+    staticPublishPath: ./build
+    pullRequestPreviewsEnabled: true # optional
+    buildFilter:
+      paths:
+      - src/**/*.js
+      ignoredPaths:
+      - src/**/*.test.js
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: sameorigin
+    routes:
+      - type: redirect
+        source: /old
+        destination: /new
+      - type: rewrite
+        source: /a/*
+        destination: /a
+  # A Redis instance
+  - type: redis
+    name: lightning
+    ipAllowList: # required
+      - source: 0.0.0.0/0
+        description: everywhere
+    plan: free # optional (defaults to starter instance type)
+    maxmemoryPolicy: noeviction # optional (defaults to allkeys-lru)
+
+envVarGroups:
+  - name: conc-settings
+    envVars:
+      - key: CONCURRENCY
+        value: 2
+      - key: SECRET
+        generateValue: true
+      - key: USER_PROVIDED_SECRET
+        sync: false
