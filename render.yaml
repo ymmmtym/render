@@ -1,0 +1,31 @@
+# Exported from Render on 2025-11-29T14:22:00Z
+version: "1"
+services:
+- type: web
+  name: webdis
+  runtime: docker
+  repo: https://github.com/render-examples/webdis
+  plan: free
+  envVars:
+  - key: REDIS_PORT
+    sync: false
+  - key: REDIS_HOST
+    fromService:
+      name: lightning
+      type: redis
+      property: host
+  region: singapore
+  healthCheckPath: /
+  dockerCommand: ./webdis.sh
+  dockerContext: .
+  dockerfilePath: ./Dockerfile
+  autoDeployTrigger: commit
+  rootDir: webdis
+  previews:
+    generation: automatic
+- type: redis
+  name: lightning
+  plan: free
+  region: singapore
+  maxmemoryPolicy: noeviction
+  ipAllowList: []
