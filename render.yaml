@@ -1,0 +1,26 @@
+# Exported from Render on 2025-12-09T13:06:24Z
+version: "1"
+services:
+- type: web
+  name: anychat
+  runtime: image
+  image:
+    url: ghcr.io/ymmmtym/anychat:main
+  plan: free
+  envVars:
+  - key: REDIS_URL
+    fromService:
+      name: redis
+      type: redis
+      property: connectionString
+  - key: STORAGE_TYPE
+    value: redis
+  region: singapore
+  autoDeployTrigger: commit
+- type: redis
+  name: redis
+  plan: free
+  region: singapore
+  maxmemoryPolicy: noeviction
+  ipAllowList: []
+
